@@ -6,6 +6,8 @@
 //
 //     http://www.apache.org/licenses/LICENSE-2.0
 
+import { existsSync } from "node:fs";
+import { delimiter, join } from "node:path";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 
@@ -16,15 +18,46 @@ export interface McpTool {
   annotations?: Record<string, unknown>;
 }
 
-// The upstream MCP server to bridge. Defaults to the published WorkIQ package via
-// npx. On a slow/inspected npm registry, point KEELSON_WORKIQ_ARGS at a
-// cache-only launch (`-y --offline @microsoft/workiq mcp`) after a one-time
-// `npm install -g @microsoft/workiq` to avoid the per-launch registry check.
+// Locate a `workiq` executable on PATH, including Windows PATHEXT shims
+// (`workiq.cmd`). A bare-name return lets the transport's cross-spawn resolve
+// it; null means no global install exists and the caller falls back to npx.
+function findWorkiqOnPath(): string | null {
+  const pathVar = process.env.PATH ?? process.env.Path ?? "";
+  const names =
+    process.platform === "win32"
+      ? ["workiq.cmd", "workiq.exe", "workiq.bat", "workiq"]
+      : ["workiq"];
+  for (const dir of pathVar.split(delimiter)) {
+    if (!dir) continue;
+    for (const name of names) {
+      if (existsSync(join(dir, name))) return "workiq";
+    }
+  }
+  return null;
+}
+
+// The upstream MCP server to bridge. Resolution order:
+//   1. KEELSON_WORKIQ_COMMAND (+ optional KEELSON_WORKIQ_ARGS) — explicit override.
+//   2. KEELSON_WORKIQ_ARGS alone — passed to `npx`.
+//   3. A globally-installed `workiq` binary on PATH — launched directly.
+//   4. `npx -y @microsoft/workiq mcp` — cold-cache fallback.
+// A direct binary launch (3) is preferred because `npx` performs a per-launch
+// registry check that hangs on a slow/TLS-inspected npm registry — and the old
+// `@latest` pin forced that network round-trip on every start. Dropping `@latest`
+// from the fallback lets a cached package launch offline; only a cold cache pays
+// the one-time fetch. Install once with `npm install -g @microsoft/workiq`.
 function resolveLaunch(): { command: string; args: string[] } {
-  const command = process.env.KEELSON_WORKIQ_COMMAND?.trim() || "npx";
+  const commandEnv = process.env.KEELSON_WORKIQ_COMMAND?.trim();
   const argsEnv = process.env.KEELSON_WORKIQ_ARGS?.trim();
-  const args = argsEnv ? argsEnv.split(/\s+/) : ["-y", "@microsoft/workiq@latest", "mcp"];
-  return { command, args };
+  if (commandEnv) {
+    return { command: commandEnv, args: argsEnv ? argsEnv.split(/\s+/) : ["mcp"] };
+  }
+  if (argsEnv) {
+    return { command: "npx", args: argsEnv.split(/\s+/) };
+  }
+  const onPath = findWorkiqOnPath();
+  if (onPath) return { command: onPath, args: ["mcp"] };
+  return { command: "npx", args: ["-y", "@microsoft/workiq", "mcp"] };
 }
 
 function intEnv(name: string, fallback: number): number {
@@ -34,9 +67,21 @@ function intEnv(name: string, fallback: number): number {
   return Number.isFinite(n) && n > 0 ? n : fallback;
 }
 
+// Full inherited environment so the WorkIQ child sees the operator's auth/token
+// vars. On Windows the search path arrives as `Path`; a bare command spawned
+// with an explicit env resolves against `PATH`, so mirror it (matches keelson's
+// ensureSpawnPath convention) or `workiq`/`npx` can ENOENT.
 function inheritedEnv(): Record<string, string> {
   const env: Record<string, string> = {};
   for (const [k, v] of Object.entries(process.env)) if (v !== undefined) env[k] = v;
+  if (process.platform === "win32" && env.PATH === undefined) {
+    for (const key of Object.keys(env)) {
+      if (key.toUpperCase() === "PATH") {
+        env.PATH = env[key] as string;
+        break;
+      }
+    }
+  }
   return env;
 }
 

@@ -48,12 +48,14 @@ M365 credential and needs no keelson keychain entry.
 
 ## Configuration
 
-All optional. Defaults target the published WorkIQ package via `npx`.
+All optional. By default the rib prefers a globally-installed `workiq` binary on
+`PATH` (a direct launch, no registry round-trip) and falls back to `npx` only
+when none is found.
 
 | Env var | Default | Purpose |
 | --- | --- | --- |
-| `KEELSON_WORKIQ_COMMAND` | `npx` | Command that launches the WorkIQ MCP server. |
-| `KEELSON_WORKIQ_ARGS` | `-y @microsoft/workiq@latest mcp` | Space-separated args for that command. |
+| `KEELSON_WORKIQ_COMMAND` | _(auto: global `workiq`, else `npx`)_ | Command that launches the WorkIQ MCP server. |
+| `KEELSON_WORKIQ_ARGS` | _(auto: `mcp`, or `-y @microsoft/workiq mcp` for the npx fallback)_ | Space-separated args for that command. |
 | `KEELSON_WORKIQ_CONNECT_TIMEOUT_MS` | `60000` | Bound on the boot-time handshake. |
 | `KEELSON_WORKIQ_CALL_TIMEOUT_MS` | `120000` | Per-tool-call timeout. |
 | `KEELSON_WORKIQ_DEBUG` | _(unset)_ | Set to `1` to inherit the WorkIQ child's stderr. |
@@ -62,19 +64,15 @@ All optional. Defaults target the published WorkIQ package via `npx`.
 
 `npx @microsoft/workiq@latest` re-checks the npm registry on every launch, which
 can blow the handshake timeout behind a slow or TLS-inspecting corporate proxy.
-Warm the cache once, then launch offline:
+Install the package globally once; the rib then auto-detects the `workiq` binary
+and launches it directly, skipping the registry entirely:
 
 ```bash
-npm install -g @microsoft/workiq@latest
+npm install -g @microsoft/workiq
 ```
 
-```bash
-# .env / shell
-KEELSON_WORKIQ_ARGS="-y --offline @microsoft/workiq mcp"
-```
-
-`--offline` skips the registry check and connects in a few seconds. Refresh
-periodically by re-running the global install.
+No env vars are needed after that. To force a specific launch instead, set
+`KEELSON_WORKIQ_COMMAND` / `KEELSON_WORKIQ_ARGS` explicitly.
 
 ## Tools
 
