@@ -1,0 +1,55 @@
+{
+  "name": "@keelson/rib-workiq",
+  "version": "0.1.0",
+  "description": "Keelson rib that bridges Microsoft WorkIQ (M365 Copilot) MCP tools into the harness.",
+  "license": "Apache-2.0",
+  "author": "Daniel Scholl",
+  "homepage": "https://github.com/danielscholl/rib-workiq#readme",
+  "bugs": {
+    "url": "https://github.com/danielscholl/rib-workiq/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danielscholl/rib-workiq.git"
+  },
+  "keywords": [
+    "keelson",
+    "rib",
+    "workiq",
+    "m365",
+    "copilot",
+    "mcp"
+  ],
+  "type": "module",
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "bun": "./src/index.ts",
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@keelson/shared": "^0.75.0",
+    "@types/bun": "^1.1.14",
+    "typescript": "^7.0.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -1,0 +1,10 @@
+rib-workiq
+Copyright 2026 Daniel Scholl
+
+This product bridges Microsoft WorkIQ (@microsoft/workiq) into the Keelson
+harness over the Model Context Protocol. It is not affiliated with or endorsed
+by Microsoft. "Microsoft 365", "Copilot", and "WorkIQ" are trademarks of
+Microsoft Corporation.
+
+This product depends on the Model Context Protocol TypeScript SDK
+(@modelcontextprotocol/sdk), used under the terms of its license.
