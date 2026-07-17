@@ -126,5 +126,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  `check-docs-drift: ok (${sourceDocs.length} source pages; ${envVars.length} env vars, ${flagged.length} flagged tools, ${modules.length} modules, ${workflowNames.length} workflows cross-checked against src/).`,
+  `check-docs-drift: ok (${sourceDocs.length} source pages; ${envVars.length} env vars, ${flagged.length} flagged tools, ${modules.length} modules, ${workflowNames.length} workflows cross-checked against the generated corpus).`,
 );

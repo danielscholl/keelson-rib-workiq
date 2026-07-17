@@ -32,12 +32,14 @@ describe("shipped static workflows", () => {
   });
 
   for (const file of workflowFiles()) {
-    const yaml = readFileSync(join(WORKFLOWS_DIR, file), "utf8");
+    // Read inside each test so an unreadable file fails that test with a clear
+    // message instead of erroring the whole suite at module evaluation.
+    const readYaml = () => readFileSync(join(WORKFLOWS_DIR, file), "utf8");
 
     // A rib workflow's `name` is its catalog key; a global workflow of the same
     // name would shadow it, so namespace under `workiq-` and match the filename.
     test(`${file}: name is workiq-namespaced and matches the filename`, () => {
-      const name = /^name:\s*(\S+)\s*$/m.exec(yaml)?.[1];
+      const name = /^name:\s*(\S+)\s*$/m.exec(readYaml())?.[1];
       expect(name).toBe(file.replace(/\.ya?ml$/, ""));
       expect(name).toMatch(/^workiq-/);
     });
@@ -48,7 +50,7 @@ describe("shipped static workflows", () => {
     // consent-demanding one it flags requires_confirmation — a workflow run has
     // no user present to answer the confirmation.
     test(`${file}: opts into read-only workiq tools only`, () => {
-      const workiqTools = allowedTools(yaml).filter((t) => t.startsWith("workiq_"));
+      const workiqTools = allowedTools(readYaml()).filter((t) => t.startsWith("workiq_"));
       expect(workiqTools.length).toBeGreaterThan(0);
       const gated = workiqTools.filter((t) => {
         const name = t.slice("workiq_".length);

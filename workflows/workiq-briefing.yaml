@@ -1,10 +1,5 @@
-# The simplest way a rib contributes a workflow: a static YAML file in the rib's
-# workflows/ folder. keelson discovers it at boot, validates it against its own
-# loader, and merges `workiq-briefing` into the catalog — no code, no
-# contributeWorkflows closure. The three gather nodes fan out to M365 Copilot in
-# parallel through the bridge's own workiq_ask tool, then the briefing node fans
-# them back in. Only workiq_ask is opted in, so the workflow stays read-only.
-# No provider pin: the briefing tracks whichever provider the harness runs.
+# Discovered from the rib's workflows/ folder at keelson boot — pure data, no
+# contributeWorkflows hook — and read once at activation, not hot-reloaded.
 
 name: workiq-briefing
 description: |
