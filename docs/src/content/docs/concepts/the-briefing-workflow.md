@@ -54,20 +54,23 @@ calendar   inbox   files        (three gather nodes, run in parallel)
 
 Each gather node opts into a single tool with `allowed_tools: [workiq_ask]`.
 Rib-registered tools are off by default inside a workflow, so a node reaches the
-bridge only by naming the tool it needs. The `briefing` node depends on all
-three and reads their text through `$calendar.output`, `$inbox.output`, and
-`$files.output`.
+bridge only by naming the tool it needs — and an `allowed_tools` list restricts
+the harness built-ins too, so a gather node holds exactly one tool. The
+`briefing` node depends on all three, reads their text through
+`$calendar.output`, `$inbox.output`, and `$files.output`, and sets
+`allowed_tools: []` — an empty allow-list grants no tools at all, the right
+shape for a node that only composes text it was handed.
 
 ## Read-only by construction
 
 The briefing only ever reads. The one tool it opts into, `workiq_ask`, is a read
-path, and none of the mutating verbs the bridge flags `state_changing`
-(`create_entity`, `update_entity`, `delete_entity`, `do_action`, `accept_eula`)
-appear in any `allowed_tools` list. The workflow also sets
-`mutates_checkout: false`, so it never touches the project checkout and can run
-alongside a mutating run on the same project. A test asserts this posture
-against the bridge's own mutating-verb set, so a future edit that grants the
-workflow a write tool fails CI.
+path; none of the mutating verbs the bridge flags `state_changing` appear in any
+`allowed_tools` list, and neither do the consent-demanding tools it flags
+`requires_confirmation` — a workflow run has no user present to answer a
+confirmation. The workflow also sets `mutates_checkout: false`, so it never
+touches the project checkout and can run alongside a mutating run on the same
+project. A test asserts this posture against the bridge's own intent sets, so a
+future edit that grants the workflow a gated tool fails CI.
 
 ## Running it
 

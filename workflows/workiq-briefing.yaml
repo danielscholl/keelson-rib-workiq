@@ -8,11 +8,9 @@
 
 name: workiq-briefing
 description: |
-  Use when: you want a quick read on your workday before opening Outlook — today's
-            meetings, mail that is waiting on you, and recently shared files.
+  Use when: you want a quick read on your workday before opening Outlook.
   Triggers: "morning briefing", "what's on today", "brief me on my day".
-  Does: asks M365 Copilot (via workiq_ask) for your calendar, waiting-on-you mail,
-        and recent files in parallel, then composes one at-a-glance briefing.
+  Does: gathers your calendar, waiting-on-you mail, and recent files in parallel via workiq_ask, then composes one at-a-glance briefing.
   NOT for: sending mail or changing anything in M365 — this workflow only reads.
 
 # Never touches the project checkout, so it is exempt from the mutation lock and
@@ -61,4 +59,7 @@ nodes:
       ## Recent files
       $files.output
     depends_on: [calendar, inbox, files]
+    # Pure composition over the gathered text — an empty allow-list grants the
+    # node no tools at all, so the whole workflow is read-only by construction.
+    allowed_tools: []
     idle_timeout: 120000

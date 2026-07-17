@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { MUTATING } from "../src/bridge.ts";
+import { CONFIRM, MUTATING } from "../src/bridge.ts";
 
 // The rib ships static YAML workflows in workflows/; keelson discovers, parses,
 // and validates each against its own loader at boot. That loader owns schema
@@ -44,12 +44,17 @@ describe("shipped static workflows", () => {
 
     // The bridge's "reads freely, confirm before writing" posture reaches the
     // workflow layer: a shipped workflow opts into the read path and never
-    // grants itself one of the mutating verbs bridge.ts flags state_changing.
+    // grants itself a mutating verb bridge.ts flags state_changing, nor a
+    // consent-demanding one it flags requires_confirmation — a workflow run has
+    // no user present to answer the confirmation.
     test(`${file}: opts into read-only workiq tools only`, () => {
       const workiqTools = allowedTools(yaml).filter((t) => t.startsWith("workiq_"));
       expect(workiqTools.length).toBeGreaterThan(0);
-      const mutating = workiqTools.filter((t) => MUTATING.has(t.slice("workiq_".length)));
-      expect(mutating).toEqual([]);
+      const gated = workiqTools.filter((t) => {
+        const name = t.slice("workiq_".length);
+        return MUTATING.has(name) || CONFIRM.has(name);
+      });
+      expect(gated).toEqual([]);
     });
   }
 });
