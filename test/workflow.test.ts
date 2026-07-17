@@ -14,13 +14,22 @@ function workflowFiles(): string[] {
   return readdirSync(WORKFLOWS_DIR).filter((n) => n.endsWith(".yaml") || n.endsWith(".yml"));
 }
 
-// Every tool named across the file's `allowed_tools: [a, b]` opt-in lists.
+// Every tool named across the file's `allowed_tools` opt-in lists, in either
+// flow style (`[a, b]`) or block style (`- a`), so a formatting-only YAML edit
+// cannot fail the suite.
 function allowedTools(yaml: string): string[] {
   const tools: string[] = [];
+  const push = (raw: string) => {
+    const name = raw.trim().replace(/^["']|["']$/g, "");
+    if (name) tools.push(name);
+  };
   for (const match of yaml.matchAll(/allowed_tools:\s*\[([^\]]*)\]/g)) {
-    for (const raw of (match[1] ?? "").split(",")) {
-      const name = raw.trim().replace(/^["']|["']$/g, "");
-      if (name) tools.push(name);
+    for (const raw of (match[1] ?? "").split(",")) push(raw);
+  }
+  for (const match of yaml.matchAll(/allowed_tools:\s*\n((?:[ \t]+-[^\n]*\n?)+)/g)) {
+    for (const line of (match[1] ?? "").split("\n")) {
+      const item = /^[ \t]+-\s*(.+)$/.exec(line)?.[1];
+      if (item) push(item);
     }
   }
   return tools;
@@ -39,7 +48,7 @@ describe("shipped static workflows", () => {
     // A rib workflow's `name` is its catalog key; a global workflow of the same
     // name would shadow it, so namespace under `workiq-` and match the filename.
     test(`${file}: name is workiq-namespaced and matches the filename`, () => {
-      const name = /^name:\s*(\S+)\s*$/m.exec(readYaml())?.[1];
+      const name = /^name:\s*(\S+)\s*$/m.exec(readYaml())?.[1]?.replace(/^["']|["']$/g, "");
       expect(name).toBe(file.replace(/\.ya?ml$/, ""));
       expect(name).toMatch(/^workiq-/);
     });

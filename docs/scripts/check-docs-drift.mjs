@@ -104,7 +104,7 @@ try {
   for (const entry of readdirSync(workflowsDir)) {
     if (!/\.ya?ml$/.test(entry)) continue;
     const text = readFileSync(join(workflowsDir, entry), "utf8");
-    const name = /^name:\s*(\S+)\s*$/m.exec(text)?.[1];
+    const name = /^name:\s*(\S+)\s*$/m.exec(text)?.[1]?.replace(/^["']|["']$/g, "");
     if (name) workflowNames.push(name);
   }
 } catch (err) {
