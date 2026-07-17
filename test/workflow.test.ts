@@ -10,8 +10,15 @@ import { CONFIRM, MUTATING } from "../src/bridge.ts";
 // the harness at boot (a broken file surfaces as a catalog notice).
 const WORKFLOWS_DIR = join(import.meta.dir, "..", "workflows");
 
+// Runs at test-definition time, so a missing or unreadable workflows/ folder
+// must yield an empty list — the "ships the briefing workflow" test then fails
+// with a clear assertion instead of the suite crashing at module evaluation.
 function workflowFiles(): string[] {
-  return readdirSync(WORKFLOWS_DIR).filter((n) => n.endsWith(".yaml") || n.endsWith(".yml"));
+  try {
+    return readdirSync(WORKFLOWS_DIR).filter((n) => n.endsWith(".yaml") || n.endsWith(".yml"));
+  } catch {
+    return [];
+  }
 }
 
 // Every tool named across the file's `allowed_tools` opt-in lists, in either
