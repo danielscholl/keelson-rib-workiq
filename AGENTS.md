@@ -5,6 +5,12 @@ Copilot's coding agent, and (via an import in `CLAUDE.md`) Claude Code — worki
 in this repository. `CONTRIBUTING.md` is the authoritative human guide; this is
 its agent-facing distillation.
 
+It records only what stays true across changes: the contract, the commands, the
+patterns, and the invariants. Inventories — which modules exist, which upstream
+tools are bridged or flagged — live in the code, change over time, and are
+deliberately NOT recorded here. Derive them from the code when you need them;
+the `/prime` command does exactly that.
+
 ## What this is
 
 `@keelson/rib-workiq` is a **rib** (extension) for
@@ -13,11 +19,10 @@ A rib is a standalone package the harness discovers at runtime and attaches
 through one typed contract — the `Rib` interface from `@keelson/shared`. This rib
 is the **WorkIQ bridge**: it spawns Microsoft WorkIQ's MCP server (`workiq mcp`)
 as a stdio child, discovers its tool set dynamically, and registers each tool as
-a keelson chat tool (`workiq_ask`, `workiq_fetch`, …) so a chat or workflow
-`prompt` node can reach M365 Copilot and Microsoft Graph. It is **tools-only**
-today — no views, surfaces, or workflows — and doubles as the reference
-implementation for "how to write a rib," so clarity of construction is a feature
-here, not a nicety.
+a keelson chat tool (`workiq_<tool>`) so a chat or workflow `prompt` node can
+reach M365 Copilot and Microsoft Graph. It is **tools-only** today — no views,
+surfaces, or workflows — and doubles as the reference implementation for "how to
+write a rib," so clarity of construction is a feature here, not a nicety.
 
 ## Commands
 
@@ -41,36 +46,43 @@ cd ../keelson && KEELSON_RIBS=workiq bun dev   # exercise it in a running harnes
 `danielscholl/keelson` checkout's `packages/shared` from `main`, so a harness
 contract change that breaks this rib turns CI red here.
 
-## Architecture
+## Architecture (the shapes, not the inventory)
 
 The whole rib is one `Rib` object exported from `src/index.ts`, assembled from
-three small modules — read them in this order:
+a handful of small modules with one role each. The whole of `src/` is short
+enough to read in full — do that rather than trusting any map. The roles:
 
-- **`src/index.ts`** — the contract surface. Runs the boot-time discovery
-  (top-level `await`, because `registerTools` is synchronous) inside a fail-soft
-  try/catch: a failed or slow handshake costs this boot its WorkIQ tools (a
-  logged warning), never the harness. Exports the `Rib` with `registerTools`
-  and `dispose`.
-- **`src/mcp-client.ts`** — the connection. One stdio MCP client to the WorkIQ
+- **The contract surface** (`src/index.ts`) — runs the boot-time discovery
+  (top-level `await`, because `registerTools` is synchronous) inside a
+  fail-soft try/catch: a failed or slow handshake costs this boot its WorkIQ
+  tools (a logged warning), never the harness. Exports the `Rib`. Discovery is
+  skipped under `NODE_ENV=test` so a test run never spawns a WorkIQ child.
+- **The per-tool conversion** (`src/bridge.ts`) — pure: one upstream MCP tool →
+  one keelson `ToolDefinition`, with the live call injected so tests pass a
+  fake. The only per-tool knowledge is intent metadata (the mutating /
+  confirmation name sets); a tool failure is emitted as a readable
+  `tool_result`, never an exception escaping into the harness's turn loop.
+- **The connection** (`src/mcp-client.ts`) — one stdio MCP client to the WorkIQ
   child, reused for the server's life; `connect` is idempotent and coalesces
   concurrent callers. Launch resolution prefers a global `workiq` binary on
   PATH over the `npx` fallback (npx re-checks the registry per launch). Every
   await is timeout-bounded (`KEELSON_WORKIQ_CONNECT_TIMEOUT_MS`,
   `KEELSON_WORKIQ_CALL_TIMEOUT_MS`).
-- **`src/json-schema.ts`** — the pure conversion layer. JSON-Schema
+- **The schema/result conversion** (`src/json-schema.ts`) — pure: JSON-Schema
   `inputSchema` → lenient zod schema, and MCP `CallToolResult` → the single
   string a keelson `tool_result` carries. No I/O; fully unit-tested.
 
-### Invariants worth protecting
+## Invariants worth protecting
 
 - **The bridge stays dynamic.** The tool list comes from `tools/list`, never
   hardcoded. The only per-tool knowledge is intent metadata (the mutating /
-  confirmation name sets); unknown upstream names pass through unflagged rather
-  than break, so new WorkIQ tools appear on the next restart with no code
-  change.
-- **Mutating tools stay flagged.** M365 writes (`create_/update_/delete_entity`,
-  `do_action`, `accept_eula`) carry `state_changing: true`; consent-demanding
-  tools carry `requires_confirmation`. The harness's UI gates depend on these.
+  confirmation name sets in `src/bridge.ts`); unknown upstream names pass
+  through unflagged rather than break, so new WorkIQ tools appear on the next
+  restart with no code change.
+- **Mutating tools stay flagged.** M365 write verbs carry
+  `state_changing: true` and consent-demanding tools carry
+  `requires_confirmation` — the intent name sets are the source of truth for
+  which. The harness's UI gates depend on these flags.
 - **Fail soft at boot, never the harness.** Handshake errors are caught at
   module load and logged; the rib registers no tools that boot and recovers on
   the next server start.
