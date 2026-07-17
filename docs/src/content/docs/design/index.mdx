@@ -1,0 +1,20 @@
+---
+title: Design
+description: "Decision records for the WorkIQ rib: why it wraps instead of reimplements, and why it started tools-only."
+sidebar:
+  label: Overview
+  order: 1
+---
+
+import { CardGrid, LinkCard } from "@astrojs/starlight/components";
+
+The right home for design narrative the source comment policy keeps
+out of code: what was decided, what was rejected, and why.
+
+<CardGrid>
+  <LinkCard
+    title="Wrap, don't reimplement"
+    href="wrap-dont-reimplement/"
+    description="Why the rib bridges WorkIQ's MCP server as-is: dynamic discovery, boot-time handshake, and a deliberate tools-first scope."
+  />
+</CardGrid>

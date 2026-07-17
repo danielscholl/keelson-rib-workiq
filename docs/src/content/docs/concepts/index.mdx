@@ -1,0 +1,38 @@
+---
+title: Concepts
+description: "The mental model for the WorkIQ rib: the bridge pipeline and the guardrails around dynamic discovery and M365 writes."
+sidebar:
+  label: Overview
+  order: 1
+---
+
+import { CardGrid, LinkCard } from "@astrojs/starlight/components";
+
+This tier is the mental model behind the rib. It assumes you know the
+[Keelson](https://danielscholl.github.io/keelson/) harness and spends its
+words on what this rib adds: how a running MCP server becomes a set of
+native chat tools, and the guarantees that hold when those tools can
+write to a real Microsoft 365 tenant.
+
+<CardGrid>
+  <LinkCard
+    title="The bridge pipeline"
+    href="the-bridge-pipeline/"
+    description="Boot handshake to tool discovery to schema conversion to registration: how every workiq_ tool comes to exist."
+  />
+  <LinkCard
+    title="Guardrails"
+    href="guardrails/"
+    description="Fail-soft boot, lenient schemas, flagged writes, one bounded child, and zero credential handling."
+  />
+</CardGrid>
+
+## Where this rib fits
+
+The rib bridges the M365 assistant and data plane that WorkIQ exposes:
+Copilot answers over your mail, meetings, and files, plus Microsoft
+Graph entity operations. The harness stays domain-free; everything
+WorkIQ-shaped lives here. The generic rib contract itself belongs to
+keelson's docs; this site documents one concrete rib that implements
+it, and does so as plainly as possible because this rib doubles as the
+reference for writing your own.

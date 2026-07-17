@@ -1,6 +1,5 @@
 node_modules/
 dist/
+.astro/
 *.log
 .DS_Store
-bun.lock
-bun.lockb

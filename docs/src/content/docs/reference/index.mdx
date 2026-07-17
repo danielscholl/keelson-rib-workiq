@@ -1,0 +1,27 @@
+---
+title: Reference
+description: "The contract tier for this rib: the bridged tool set, the intent flags, and every environment variable it reads."
+sidebar:
+  label: Overview
+  order: 1
+---
+
+import { CardGrid, LinkCard } from "@astrojs/starlight/components";
+
+Terse and precise: what the rib registers and what it reads. The
+generic `Rib` contract belongs to
+[keelson's docs](https://danielscholl.github.io/keelson/); this tier
+covers only what this rib binds against it.
+
+<CardGrid>
+  <LinkCard
+    title="Bridged tools"
+    href="tools/"
+    description="The workiq_ tool family, what each does, and which are flagged as writes."
+  />
+  <LinkCard
+    title="Configuration"
+    href="configuration/"
+    description="Every KEELSON_WORKIQ_* environment variable, with defaults and when to reach for each."
+  />
+</CardGrid>

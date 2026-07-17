@@ -1,0 +1,22 @@
+---
+title: Tutorials
+description: "The learning rail: use this rib as the worked example and build your own tools-only rib from zero."
+sidebar:
+  label: Overview
+  order: 1
+---
+
+import { CardGrid, LinkCard } from "@astrojs/starlight/components";
+
+This rib exists twice over: once as a useful bridge to Microsoft 365,
+and once as the reference implementation for the smallest complete
+rib. The tutorial rail leans on the second life. Read the
+[concepts](../concepts/) first for the shape; then build.
+
+<CardGrid>
+  <LinkCard
+    title="Write your own rib"
+    href="write-your-own-rib/"
+    description="From an empty directory to a discovered, tool-registering rib, mirroring this repo's construction step by step."
+  />
+</CardGrid>
