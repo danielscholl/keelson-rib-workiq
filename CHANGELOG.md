@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/danielscholl/keelson-rib-workiq/compare/v0.2.1...v0.3.0) (2026-07-17)
+
+
+### Added
+
+* ship a static workiq-briefing workflow ([#7](https://github.com/danielscholl/keelson-rib-workiq/issues/7)) ([9c1d0ab](https://github.com/danielscholl/keelson-rib-workiq/commit/9c1d0ab206b99142abd01cd52e1fea60520b1bab))
+
 ## [0.2.1](https://github.com/danielscholl/keelson-rib-workiq/compare/v0.2.0...v0.2.1) (2026-07-17)
 
 
