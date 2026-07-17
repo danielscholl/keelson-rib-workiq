@@ -8,6 +8,12 @@ agents, and read or mutate Microsoft Graph entities.
 
 This is a **tools-only rib**: it contributes no views, surfaces, or workflows —
 only the WorkIQ tool set, discovered dynamically from the upstream MCP server.
+It is also, deliberately, keelson's **teaching rib**: the smallest complete,
+production-shaped example of the `Rib` contract, built to be read. The
+[documentation site](https://danielscholl.github.io/keelson-rib-workiq/) walks
+the construction file by file and includes a
+[write-your-own-rib tutorial](https://danielscholl.github.io/keelson-rib-workiq/tutorials/write-your-own-rib/);
+[ROADMAP.md](ROADMAP.md) plans the rib's evolution one contract hook at a time.
 
 ## How it works
 
@@ -28,6 +34,15 @@ hardcodes the tool list.
 `registerTools` is synchronous, so the handshake runs at rib load. A failed or
 slow handshake costs **this boot** its WorkIQ tools (logged as a warning), never
 the harness — the connection reopens on the next start.
+
+The source is three small modules, one contract concern each:
+
+| Module | Concern |
+| --- | --- |
+| [`src/index.ts`](src/index.ts) | The contract surface: boot-time discovery inside the fail-soft boundary, and the exported `Rib`. |
+| [`src/bridge.ts`](src/bridge.ts) | One MCP tool → one keelson `ToolDefinition`, with intent flags; transport injected, fully testable. |
+| [`src/mcp-client.ts`](src/mcp-client.ts) | The single reused stdio connection: launch resolution, bounded timeouts, teardown. |
+| [`src/json-schema.ts`](src/json-schema.ts) | Pure conversion: JSON-Schema → lenient zod, MCP result → `tool_result` string. |
 
 ## Install
 
@@ -62,10 +77,10 @@ when none is found.
 
 ### Slow or inspected npm registry
 
-`npx @microsoft/workiq@latest` re-checks the npm registry on every launch, which
-can blow the handshake timeout behind a slow or TLS-inspecting corporate proxy.
-Install the package globally once; the rib then auto-detects the `workiq` binary
-and launches it directly, skipping the registry entirely:
+`npx` re-checks the npm registry on launch, which can blow the handshake
+timeout behind a slow or TLS-inspecting corporate proxy. Install the package
+globally once; the rib then auto-detects the `workiq` binary and launches it
+directly, skipping the registry entirely:
 
 ```bash
 npm install -g @microsoft/workiq
@@ -102,14 +117,40 @@ reviewers see intent.
 
 ```bash
 bun install
-bun run typecheck
+bun link @keelson/shared     # the Rib contract, from a local keelson checkout
+
+bun run check                # Biome lint + format
+bun run typecheck            # tsc --noEmit
+bun test                     # pure bridge/schema coverage — never spawns WorkIQ
+
+bun run link:keelson         # symlink this rib into ../keelson (KEELSON_DIR overrides)
+cd ../keelson && KEELSON_RIBS=workiq bun dev
 ```
 
 The rib is consumed by keelson's Bun runtime, which imports the TypeScript
 source directly, so there is no build step — the published package ships its
-`src/` and keelson loads it as-is.
+`src/` and keelson loads it as-is. See [CONTRIBUTING.md](CONTRIBUTING.md) for
+the full contribution flow and the invariants every change is reviewed against.
+
+## Documentation
+
+The docs site lives under [`docs/`](docs/) (Astro Starlight) and deploys to
+<https://danielscholl.github.io/keelson-rib-workiq/>. It covers the concepts
+(the bridge pipeline, the guardrails), operator guides, the write-your-own-rib
+tutorial, and reference for the tool set and configuration. The build
+cross-checks the docs against `src/` (`docs/scripts/check-docs-drift.mjs`), so
+an env var, flagged tool, or module that ships undocumented fails CI.
+
+## Acknowledgments
+
+This rib bundles no Microsoft code — it spawns the separately-installed
+[WorkIQ CLI](https://www.npmjs.com/package/@microsoft/workiq) and talks to it
+over the [Model Context Protocol](https://modelcontextprotocol.io/) via the
+[MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk).
+See [NOTICE](NOTICE) for attribution.
 
 ## License
 
-Apache-2.0. Not affiliated with or endorsed by Microsoft; "Microsoft 365",
-"Copilot", and "WorkIQ" are trademarks of Microsoft.
+Apache-2.0 (see [LICENSE](LICENSE)). Not affiliated with or endorsed by
+Microsoft; "Microsoft 365", "Copilot", and "WorkIQ" are trademarks of
+Microsoft.

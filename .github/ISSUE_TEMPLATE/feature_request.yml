@@ -1,0 +1,47 @@
+name: Feature request
+description: Propose a capability or change to the WorkIQ rib.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This rib bridges Microsoft WorkIQ (the M365 Copilot MCP server) into
+        Keelson. All WorkIQ and M365 knowledge lives here; the harness stays
+        domain-free, and the bridged tool list stays dynamic (discovered from
+        upstream, never hardcoded). Propose your idea here and we'll figure out
+        where it fits.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What are you trying to do that's hard or impossible today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What you'd like to see. Rough is fine.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of the rib does this touch?
+      options:
+        - Tool bridging / discovery
+        - Schema conversion (JSON Schema → zod)
+        - MCP connection / launch resolution
+        - Tool intent flags (state_changing / confirmation)
+        - New rib capability (surface / workflow / agent / command)
+        - Docs
+        - Not sure / other
+    validations:
+      required: true

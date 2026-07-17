@@ -1,0 +1,26 @@
+---
+title: Guides
+description: "Task-oriented how-tos: install the rib, sign in to WorkIQ, and develop against a local Keelson checkout."
+sidebar:
+  label: Overview
+  order: 1
+---
+
+import { CardGrid, LinkCard } from "@astrojs/starlight/components";
+
+Each guide is one task, start to finish. They assume a working
+[Keelson](https://danielscholl.github.io/keelson/) install and spend
+their words on the WorkIQ-specific steps.
+
+<CardGrid>
+  <LinkCard
+    title="Install the rib"
+    href="install-the-rib/"
+    description="Add the rib, install WorkIQ globally, sign in once, and verify the tools appear."
+  />
+  <LinkCard
+    title="Develop locally"
+    href="develop-locally/"
+    description="Link the rib into a keelson checkout, run the checks, and debug the handshake."
+  />
+</CardGrid>

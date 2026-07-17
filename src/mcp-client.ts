@@ -46,7 +46,9 @@ function findWorkiqOnPath(): string | null {
 // `@latest` pin forced that network round-trip on every start. Dropping `@latest`
 // from the fallback lets a cached package launch offline; only a cold cache pays
 // the one-time fetch. Install once with `npm install -g @microsoft/workiq`.
-function resolveLaunch(): { command: string; args: string[] } {
+// Exported for tests: resolution is pure given the env, so it's asserted
+// without ever spawning anything.
+export function resolveLaunch(): { command: string; args: string[] } {
   const commandEnv = process.env.KEELSON_WORKIQ_COMMAND?.trim();
   const argsEnv = process.env.KEELSON_WORKIQ_ARGS?.trim();
   if (commandEnv) {
@@ -154,11 +156,10 @@ export class WorkIqMcpClient {
     if (!this.client) await this.connect();
     if (!this.client) throw new Error("WorkIQ MCP client unavailable");
     const timeoutMs = intEnv("KEELSON_WORKIQ_CALL_TIMEOUT_MS", 120000);
-    return this.client.callTool(
-      { name, arguments: args },
-      undefined,
-      { timeout: timeoutMs, ...(signal ? { signal } : {}) },
-    );
+    return this.client.callTool({ name, arguments: args }, undefined, {
+      timeout: timeoutMs,
+      ...(signal ? { signal } : {}),
+    });
   }
 
   async close(): Promise<void> {

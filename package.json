@@ -38,16 +38,28 @@
     "NOTICE"
   ],
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "link:keelson": "bun dev/link.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@keelson/shared": "^0.75.0",
+    "@biomejs/biome": "2.5.3",
     "@types/bun": "^1.1.14",
     "typescript": "^7.0.2"
+  },
+  "peerDependencies": {
+    "@keelson/shared": ">=0.75.0"
+  },
+  "peerDependenciesMeta": {
+    "@keelson/shared": {
+      "optional": true
+    }
   },
   "publishConfig": {
     "access": "public"

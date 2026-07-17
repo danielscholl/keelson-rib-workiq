@@ -1,0 +1,71 @@
+---
+title: Keelson Rib · WorkIQ
+description: "Microsoft WorkIQ bridged into Keelson as native chat tools, and the reference rib for learning to write your own."
+---
+
+import { CardGrid, LinkCard } from "@astrojs/starlight/components";
+
+Your work lives in Microsoft 365: mail, meetings, files, calendar. Your
+agent harness lives on your machine. Microsoft ships the bridge between
+them as an MCP server, `workiq mcp`, that fronts M365 Copilot and the
+Microsoft Graph.
+
+This rib closes the last gap. At boot it spawns that server once, asks it
+what tools it has, and registers each one as a native
+[Keelson](https://danielscholl.github.io/keelson/) chat tool. A keelson
+chat (or a workflow `prompt` node) can then ask Copilot about your inbox,
+list your meetings, read and mutate Graph entities, all with the tools it
+already knows how to call.
+
+Three design choices keep it honest:
+
+- **Dynamic, never hardcoded.** The tool list comes from the server at
+  boot, so new WorkIQ tools appear on the next restart with no code
+  change.
+- **Fail soft.** If WorkIQ is missing or slow, the boot logs a warning
+  and registers nothing. The harness never pays for the rib's problems.
+- **No credentials.** WorkIQ owns Microsoft 365 auth out of band. The rib
+  never sees, stores, or logs a token.
+
+## The teaching rib
+
+`@keelson/rib-workiq` is also deliberately the **reference
+implementation** for writing a rib. The whole package is three small
+source files, each one contract concern, and the docs here walk them
+line by line. If you want to build your own rib, start with
+[the bridge pipeline](concepts/the-bridge-pipeline/) to see the shape,
+then follow [Write your own rib](tutorials/write-your-own-rib/) to build
+one from zero.
+
+<CardGrid>
+  <LinkCard
+    title="Concepts"
+    href="concepts/"
+    description="The bridge pipeline and the guardrails: how an MCP server becomes chat tools, and what the rib refuses to do."
+  />
+  <LinkCard
+    title="Guides"
+    href="guides/"
+    description="Task-oriented how-tos: install the rib, sign in to WorkIQ, develop against a local Keelson."
+  />
+  <LinkCard
+    title="Tutorials"
+    href="tutorials/"
+    description="The learning rail: build your own tools-only rib from zero, with this rib as the worked example."
+  />
+  <LinkCard
+    title="Reference"
+    href="reference/"
+    description="The bridged tool set, the intent flags, and every environment variable the rib reads."
+  />
+</CardGrid>
+
+## Where this rib fits
+
+The rib surfaces the M365 **assistant and data plane** that WorkIQ
+exposes: Copilot answers, Graph entity reads, and flagged Graph writes.
+It contributes no views, surfaces, or workflows today; that evolution is
+mapped milestone by milestone in the repo's
+[ROADMAP](https://github.com/danielscholl/keelson-rib-workiq/blob/main/ROADMAP.md),
+where each planned capability demonstrates another hook of the `Rib`
+contract.
