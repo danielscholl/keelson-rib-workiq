@@ -1,0 +1,64 @@
+# The simplest way a rib contributes a workflow: a static YAML file in the rib's
+# workflows/ folder. keelson discovers it at boot, validates it against its own
+# loader, and merges `workiq-briefing` into the catalog — no code, no
+# contributeWorkflows closure. The three gather nodes fan out to M365 Copilot in
+# parallel through the bridge's own workiq_ask tool, then the briefing node fans
+# them back in. Only workiq_ask is opted in, so the workflow stays read-only.
+# No provider pin: the briefing tracks whichever provider the harness runs.
+
+name: workiq-briefing
+description: |
+  Use when: you want a quick read on your workday before opening Outlook — today's
+            meetings, mail that is waiting on you, and recently shared files.
+  Triggers: "morning briefing", "what's on today", "brief me on my day".
+  Does: asks M365 Copilot (via workiq_ask) for your calendar, waiting-on-you mail,
+        and recent files in parallel, then composes one at-a-glance briefing.
+  NOT for: sending mail or changing anything in M365 — this workflow only reads.
+
+# Never touches the project checkout, so it is exempt from the mutation lock and
+# can run alongside a mutating run on the same project.
+mutates_checkout: false
+
+nodes:
+  - id: calendar
+    prompt: |
+      Call the workiq_ask tool to ask M365 Copilot: "What meetings do I have
+      today? List each with its time, title, and organizer, earliest first."
+      Report the answer as given; if there are no meetings, say so plainly.
+    allowed_tools: [workiq_ask]
+    idle_timeout: 120000
+
+  - id: inbox
+    prompt: |
+      Call the workiq_ask tool to ask M365 Copilot: "Which unread emails from the
+      last two days are waiting on a reply from me? For each, give the sender,
+      subject, and what they are asking for."
+      Report the answer as given; if nothing is waiting, say so plainly.
+    allowed_tools: [workiq_ask]
+    idle_timeout: 120000
+
+  - id: files
+    prompt: |
+      Call the workiq_ask tool to ask M365 Copilot: "What files were shared with
+      me or that I edited in the last three days? Give each file's name, who
+      shared it, and when."
+      Report the answer as given; if there are none, say so plainly.
+    allowed_tools: [workiq_ask]
+    idle_timeout: 120000
+
+  - id: briefing
+    prompt: |
+      Compose a single, skimmable daily briefing from the gathered sections
+      below. Use these three headings in this order, and keep each to tight
+      bullets. Do not invent anything that is not present in the sections.
+
+      ## Today's meetings
+      $calendar.output
+
+      ## Waiting on you
+      $inbox.output
+
+      ## Recent files
+      $files.output
+    depends_on: [calendar, inbox, files]
+    idle_timeout: 120000

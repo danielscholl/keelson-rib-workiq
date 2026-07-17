@@ -113,6 +113,16 @@ flagged `state_changing`; `accept_eula` and `get_debug_link` are flagged
 `requires_confirmation`, surfaced through keelson's `/api/tools` so UI gates and
 reviewers see intent.
 
+## Workflows
+
+The rib also ships one static YAML workflow, [`workflows/workiq-briefing.yaml`](workflows/workiq-briefing.yaml).
+keelson discovers a rib's `workflows/` folder at boot, validates each file
+against its own loader, and merges it into the workflow catalog — no rib code,
+the simplest contribution a rib can make. `workiq-briefing` fans out to M365
+Copilot in parallel for your calendar, waiting-on-you mail, and recent files
+(read-only, through `workiq_ask`), then fans in one at-a-glance briefing. See
+the [briefing-workflow docs](https://danielscholl.github.io/keelson-rib-workiq/concepts/the-briefing-workflow/).
+
 ## Development
 
 ```bash

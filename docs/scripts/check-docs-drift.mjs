@@ -94,6 +94,28 @@ for (const m of modules) {
   if (!llms.includes(m)) fail(`module "${m}" exists but is not mentioned in the docs.`);
 }
 
+// Static workflows: every YAML the rib ships in workflows/ is discovered by the
+// harness and merged into its catalog under the file's `name:`. A shipped-but-
+// undocumented workflow drifts the same way an env var or a flagged tool does,
+// so require each catalog name to appear in the generated corpus.
+const workflowsDir = join(repoRoot, "workflows");
+const workflowNames = [];
+try {
+  for (const entry of readdirSync(workflowsDir)) {
+    if (!/\.ya?ml$/.test(entry)) continue;
+    const text = readFileSync(join(workflowsDir, entry), "utf8");
+    const name = /^name:\s*(\S+)\s*$/m.exec(text)?.[1];
+    if (name) workflowNames.push(name);
+  }
+} catch (err) {
+  if (err.code !== "ENOENT") throw err;
+}
+for (const name of workflowNames) {
+  if (!llms.includes(name)) {
+    fail(`workflow "${name}" ships in workflows/ but is not documented.`);
+  }
+}
+
 // --- report ------------------------------------------------------------------
 
 if (failures.length > 0) {
@@ -104,5 +126,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  `check-docs-drift: ok (${sourceDocs.length} source pages; ${envVars.length} env vars, ${flagged.length} flagged tools, ${modules.length} modules cross-checked against src/).`,
+  `check-docs-drift: ok (${sourceDocs.length} source pages; ${envVars.length} env vars, ${flagged.length} flagged tools, ${modules.length} modules, ${workflowNames.length} workflows cross-checked against src/).`,
 );
