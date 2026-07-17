@@ -33,6 +33,7 @@
   },
   "files": [
     "src",
+    "workflows",
     "README.md",
     "LICENSE",
     "NOTICE"

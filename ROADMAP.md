@@ -69,15 +69,21 @@ capability so users can reach for it, without new runtime machinery.
 
 ## M4 — The extraction: a briefing workflow
 
-**What it delivers.** A contributed `workiq-briefing` workflow that gathers
-today's shape — calendar, unread highlights, waiting-on-you mail, recent
-shared files — through the rib's own tools and publishes a structured briefing
-document to a rib-namespaced snapshot key (`rib:workiq:briefing`).
+**Landed in part.** The gathering workflow ships today as static YAML,
+`workflows/workiq-briefing.yaml`, discovered from the rib's `workflows/` folder
+(see Landed). What remains here is the upgrade from a read-only, on-demand
+briefing to one that publishes **state the harness can render**.
+
+**What it delivers.** Promote the briefing from folder YAML to a
+`contributeWorkflows` contribution bound to a rib-namespaced snapshot key
+(`rib:workiq:briefing`), emitting a structured briefing document rather than
+prose.
 
 **The teaching point.** `contributeWorkflows`, and with it half the platform:
 snapshot keys and namespacing, `output_schema` promotion, fail-closed
-`validate` before publish. This is the milestone where the rib stops being
-request/response and starts having **state the harness can render**.
+`validate` before publish. The static-YAML slice already proved a rib can ship
+a workflow with zero code; the hook earns its place only once the workflow must
+bind a key the folder path cannot.
 
 **Design sketch.** A `prompt` node (the agent gathers via workiq tools and
 emits JSON matching the schema) is the natural shape — this rib's data source
@@ -166,3 +172,12 @@ Ideas that are real but not yet sequenced; promote one when it earns a slot:
   `dispose`. Retrospective: synchronous `registerTools` forced the boot-time
   top-level await that now anchors the whole teaching narrative — the
   constraint became the curriculum.
+
+- **Static YAML briefing workflow** (v0.3): `workflows/workiq-briefing.yaml`,
+  discovered from the rib's `workflows/` folder — a fan-out/fan-in briefing over
+  the bridge's read-only `workiq_ask`, with the docs-drift check taught to guard
+  the new surface. Retrospective: the plan filed the whole briefing under
+  `contributeWorkflows`, but the folder-discovery capability ships a workflow as
+  pure data with no hook at all — the hook only earns its place once a workflow
+  must bind a snapshot key (M4's remainder), so the simplest teaching slice
+  comes first and for free.

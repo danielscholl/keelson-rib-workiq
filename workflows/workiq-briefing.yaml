@@ -1,0 +1,60 @@
+# Discovered from the rib's workflows/ folder at keelson boot — pure data, no
+# contributeWorkflows hook — and read once at activation, not hot-reloaded.
+
+name: workiq-briefing
+description: |
+  Use when: you want a quick read on your workday before opening Outlook.
+  Triggers: "morning briefing", "what's on today", "brief me on my day".
+  Does: gathers your calendar, waiting-on-you mail, and recent files in parallel via workiq_ask, then composes one at-a-glance briefing.
+  NOT for: sending mail or changing anything in M365 — this workflow only reads.
+
+# Never touches the project checkout, so it is exempt from the mutation lock and
+# can run alongside a mutating run on the same project.
+mutates_checkout: false
+
+nodes:
+  - id: calendar
+    prompt: |
+      Call the workiq_ask tool to ask M365 Copilot: "What meetings do I have
+      today? List each with its time, title, and organizer, earliest first."
+      Report the answer as given; if there are no meetings, say so plainly.
+    allowed_tools: [workiq_ask]
+    idle_timeout: 120000
+
+  - id: inbox
+    prompt: |
+      Call the workiq_ask tool to ask M365 Copilot: "Which unread emails from the
+      last two days are waiting on a reply from me? For each, give the sender,
+      subject, and what they are asking for."
+      Report the answer as given; if nothing is waiting, say so plainly.
+    allowed_tools: [workiq_ask]
+    idle_timeout: 120000
+
+  - id: files
+    prompt: |
+      Call the workiq_ask tool to ask M365 Copilot: "What files were shared with
+      me or that I edited in the last three days? Give each file's name, who
+      shared it, and when."
+      Report the answer as given; if there are none, say so plainly.
+    allowed_tools: [workiq_ask]
+    idle_timeout: 120000
+
+  - id: briefing
+    prompt: |
+      Compose a single, skimmable daily briefing from the gathered sections
+      below. Use these three headings in this order, and keep each to tight
+      bullets. Do not invent anything that is not present in the sections.
+
+      ## Today's meetings
+      $calendar.output
+
+      ## Waiting on you
+      $inbox.output
+
+      ## Recent files
+      $files.output
+    depends_on: [calendar, inbox, files]
+    # Pure composition over the gathered text — an empty allow-list grants the
+    # node no tools at all, so the whole workflow is read-only by construction.
+    allowed_tools: []
+    idle_timeout: 120000
